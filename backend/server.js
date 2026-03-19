@@ -1,10 +1,23 @@
 ﻿const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const { rights, categories, chatResponses } = require('./data');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const USERS_FILE = path.join(__dirname, 'users.json');
+
+const loadUsers = () => {
+  if (!fs.existsSync(USERS_FILE)) return [];
+  return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+};
+
+const saveUsers = (users) => {
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+};
 
 // GET all rights
 app.get('/api/rights', (req, res) => {
@@ -41,6 +54,26 @@ app.post('/api/rights/filter', (req, res) => {
     return true;
   });
   res.json({ rights: filtered, total: filtered.length });
+});
+
+// GET all saved users
+app.get('/api/users', (req, res) => {
+  res.json(loadUsers());
+});
+
+// POST save user profile
+app.post('/api/users', (req, res) => {
+  const { name, ...profile } = req.body;
+  if (!name) return res.status(400).json({ error: 'กรุณาระบุชื่อ' });
+  const users = loadUsers();
+  const idx = users.findIndex(u => u.name === name);
+  if (idx >= 0) {
+    users[idx] = { name, profile };
+  } else {
+    users.push({ name, profile });
+  }
+  saveUsers(users);
+  res.json({ success: true });
 });
 
 // POST chat

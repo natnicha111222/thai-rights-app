@@ -18,14 +18,17 @@ thai-rights-app/
 
 ### Backend (`backend/`)
 
-- `server.js` — Express server with 4 routes (no npm start script; run with `node server.js`)
+- `server.js` — Express server with 6 routes (no npm start script; run with `node server.js`)
 - `data.js` — Static data source: exports `rights[]`, `categories[]`, and `chatResponses{}`
+- `users.json` — Auto-generated file storing saved user profiles (gitignored)
 
 **API endpoints:**
 - `GET /api/rights` — returns all rights + categories
 - `GET /api/rights/:id` — single right by ID
 - `POST /api/rights/filter` — filters rights by user profile fields (age, gender, work, isDisabled, isPregnant, isVeteran, hasChildren, isLowIncome)
 - `POST /api/chat` — keyword-based chatbot; matches against `chatResponses` keys first, then right names/descriptions
+- `GET /api/users` — returns all saved user profiles
+- `POST /api/users` — saves or updates a user profile by name; body: `{ name, ...profileFields }`
 
 **Right data shape:** `{ id, name, description, category, icon, ageMin, ageMax, conditions[], howTo, contact, phone, location, documents }`
 
@@ -40,7 +43,7 @@ Filtering logic: age range check + `conditions[]` must intersect with user's app
 
 **Component responsibilities:**
 - `Home` — search bar + stats + entry point to Profile
-- `Profile` — form collecting user demographics; on submit calls `filterRights()` in App, navigating to `myRights`
+- `Profile` — form collecting user demographics + name field; loads saved profiles from `/api/users` on mount; selecting a saved profile auto-fills the form; on submit saves profile to backend then calls `filterRights()` in App, navigating to `myRights`
 - `MyRights` — shows filtered rights for the user's profile
 - `AllRights` — full list with category filter
 - `Timeline` — displays rights grouped or ordered by life stage/age

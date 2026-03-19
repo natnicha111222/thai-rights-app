@@ -1,15 +1,62 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const API = 'http://localhost:5000/api';
 
 function Profile({ onSave }) {
   const [form, setForm] = useState({ age:'', gender:'', work:'', income:'', isDisabled:false, isPregnant:false, isVeteran:false, hasChildren:false, isLowIncome:false, isElderly:false });
+  const [name, setName] = useState('');
+  const [savedUsers, setSavedUsers] = useState([]);
+
+  useEffect(() => {
+    fetch(API + '/users')
+      .then(r => r.json())
+      .then(d => setSavedUsers(d))
+      .catch(() => {});
+  }, []);
 
   const update = (k, v) => setForm({ ...form, [k]: v });
+
+  const loadProfile = (selectedName) => {
+    const user = savedUsers.find(u => u.name === selectedName);
+    if (user) {
+      setName(user.name);
+      setForm(user.profile);
+    }
+  };
+
+  const handleSave = () => {
+    if (name.trim()) {
+      fetch(API + '/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), ...form })
+      }).catch(() => {});
+    }
+    onSave(form);
+  };
 
   return (
     <div className="container">
       <div className="card">
         <h2>{'\uD83D\uDC64'} ข้อมูลของฉัน</h2>
         <p style={{color:'#666',marginBottom:20}}>กรอกข้อมูลเพื่อให้ระบบแนะนำสิทธิที่เหมาะกับคุณ</p>
+
+        {savedUsers.length > 0 && (
+          <div className="form-group">
+            <label>📂 โปรไฟล์ที่บันทึกไว้</label>
+            <select onChange={e => loadProfile(e.target.value)} defaultValue="">
+              <option value="">-- เลือกโปรไฟล์ --</option>
+              {savedUsers.map(u => (
+                <option key={u.name} value={u.name}>{u.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label>✏️ ชื่อของคุณ (เพื่อบันทึกข้อมูล)</label>
+          <input type="text" placeholder="เช่น สมชาย" value={name} onChange={e => setName(e.target.value)} />
+        </div>
 
         <div className="form-group">
           <label>{'\uD83D\uDCC5'} อายุ (ปี)</label>
@@ -62,7 +109,7 @@ function Profile({ onSave }) {
           </div>
         </div>
 
-        <button className="btn-primary" onClick={() => onSave(form)}>{'\u2705'} บันทึกและดูสิทธิของฉัน</button>
+        <button className="btn-primary" onClick={handleSave}>{'\u2705'} บันทึกและดูสิทธิของฉัน</button>
       </div>
     </div>
   );
