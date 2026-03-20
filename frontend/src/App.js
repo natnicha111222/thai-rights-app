@@ -16,6 +16,7 @@ function App() {
   const [myRights, setMyRights] = useState([]);
   const [profile, setProfile] = useState(null);
   const [selectedRight, setSelectedRight] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch(API + '/rights')
@@ -48,11 +49,8 @@ function App() {
     <div>
       <nav className="navbar">
         <div className="nav-logo" onClick={() => setPage('home')}>
-          🏠
+          <span>สิทธิคนไทย</span>
         </div>
-        {/* <div className="nav-logo" onClick={() => setPage('home')}>
-          \uD83C\uDDF9\uD83C\uDDED \u0E2A\u0E34\u0E17\u0E18\u0E34\u0E04\u0E19\u0E44\u0E17\u0E22
-        </div> */}
         <div className="nav-links">
           {nav.map(n => (
             <button key={n.id} className={page === n.id ? 'active' : ''} onClick={() => setPage(n.id)}>
@@ -60,7 +58,19 @@ function App() {
             </button>
           ))}
         </div>
+        <button className="hamburger" onClick={() => setMenuOpen(o => !o)}>
+          {menuOpen ? '✕' : '☰'}
+        </button>
       </nav>
+      {menuOpen && (
+        <div className="mobile-menu">
+          {nav.map(n => (
+            <button key={n.id} className={page === n.id ? 'active' : ''} onClick={() => { setPage(n.id); setMenuOpen(false); }}>
+              {n.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {page === 'home' && <Home rights={rights} myRights={myRights} categories={categories} setPage={setPage} onSelect={setSelectedRight} />}
       {page === 'profile' && <Profile onSave={filterRights} />}
